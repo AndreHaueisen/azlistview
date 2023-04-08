@@ -1,9 +1,7 @@
-import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
 import 'package:flutter/services.dart';
 
 /// IndexHintBuilder.
@@ -22,8 +20,7 @@ abstract class IndexBarDragListener {
 /// Internal implementation of [ItemPositionsListener].
 class IndexBarDragNotifier implements IndexBarDragListener {
   @override
-  final ValueNotifier<IndexBarDragDetails> dragDetails =
-      ValueNotifier(IndexBarDragDetails());
+  final ValueNotifier<IndexBarDragDetails> dragDetails = ValueNotifier(IndexBarDragDetails());
 }
 
 /// IndexModel.
@@ -112,7 +109,7 @@ class IndexBarOptions {
   const IndexBarOptions({
     this.needRebuild = false,
     this.ignoreDragCancel = false,
-    this.hapticFeedback = false,
+    this.hapticFeedback,
     this.color,
     this.downColor,
     this.decoration,
@@ -129,8 +126,7 @@ class IndexBarOptions {
       shape: BoxShape.rectangle,
       borderRadius: BorderRadius.all(Radius.circular(6)),
     ),
-    this.indexHintTextStyle =
-        const TextStyle(fontSize: 24.0, color: Colors.white),
+    this.indexHintTextStyle = const TextStyle(fontSize: 24.0, color: Colors.white),
     this.indexHintChildAlignment = Alignment.center,
     this.indexHintAlignment = Alignment.center,
     this.indexHintPosition,
@@ -145,7 +141,7 @@ class IndexBarOptions {
   final bool ignoreDragCancel;
 
   /// Haptic feedback.
-  final bool hapticFeedback;
+  final HapticFeedbackType? hapticFeedback;
 
   /// IndexBar background color.
   final Color? color;
@@ -280,20 +276,17 @@ class _IndexBarState extends State<IndexBar> {
   @override
   void initState() {
     super.initState();
-    widget.indexBarDragNotifier?.dragDetails?.addListener(_valueChanged);
+    widget.indexBarDragNotifier?.dragDetails.addListener(_valueChanged);
     widget.controller?._attach(this);
   }
 
   void _valueChanged() {
     if (widget.indexBarDragNotifier == null) return;
-    IndexBarDragDetails details =
-        widget.indexBarDragNotifier!.dragDetails.value;
+    IndexBarDragDetails details = widget.indexBarDragNotifier!.dragDetails.value;
     selectIndex = details.index!;
     indexTag = details.tag!;
     action = details.action!;
-    floatTop = details.globalPositionY! +
-        widget.itemHeight / 2 -
-        widget.options.indexHintHeight / 2;
+    floatTop = details.globalPositionY! + widget.itemHeight / 2 - widget.options.indexHintHeight / 2;
 
     if (_isActionDown()) {
       _addOverlay(context);
@@ -302,8 +295,7 @@ class _IndexBarState extends State<IndexBar> {
     }
 
     if (widget.options.needRebuild) {
-      if (widget.options.ignoreDragCancel &&
-          action == IndexBarDragDetails.actionCancel) {
+      if (widget.options.ignoreDragCancel && action == IndexBarDragDetails.actionCancel) {
       } else {
         setState(() {});
       }
@@ -311,15 +303,14 @@ class _IndexBarState extends State<IndexBar> {
   }
 
   bool _isActionDown() {
-    return action == IndexBarDragDetails.actionDown ||
-        action == IndexBarDragDetails.actionUpdate;
+    return action == IndexBarDragDetails.actionDown || action == IndexBarDragDetails.actionUpdate;
   }
 
   @override
   void dispose() {
     widget.controller?._detach();
     _removeOverlay();
-    widget.indexBarDragNotifier?.dragDetails?.removeListener(_valueChanged);
+    widget.indexBarDragNotifier?.dragDetails.removeListener(_valueChanged);
     super.dispose();
   }
 
@@ -351,8 +342,7 @@ class _IndexBarState extends State<IndexBar> {
 
   /// add overlay.
   void _addOverlay(BuildContext context) {
-    OverlayState? overlayState = Overlay.of(context);
-    if (overlayState == null) return;
+    final overlayState = Overlay.of(context);
     if (overlayEntry == null) {
       overlayEntry = OverlayEntry(builder: (BuildContext ctx) {
         double left;
@@ -367,8 +357,7 @@ class _IndexBarState extends State<IndexBar> {
                 widget.options.indexHintWidth +
                 widget.options.indexHintOffset.dx;
             top = floatTop + widget.options.indexHintOffset.dy;
-          } else if (widget.options.indexHintAlignment ==
-              Alignment.centerLeft) {
+          } else if (widget.options.indexHintAlignment == Alignment.centerLeft) {
             left = kIndexBarWidth + widget.options.indexHintOffset.dx;
             top = floatTop + widget.options.indexHintOffset.dy;
           } else {
@@ -406,22 +395,14 @@ class _IndexBarState extends State<IndexBar> {
     Decoration? decoration;
     TextStyle? textStyle;
     if (widget.options.downItemDecoration != null) {
-      decoration = (_isActionDown() && selectIndex == index)
-          ? widget.options.downItemDecoration
-          : null;
-      textStyle = (_isActionDown() && selectIndex == index)
-          ? widget.options.downTextStyle
-          : widget.options.textStyle;
+      decoration = (_isActionDown() && selectIndex == index) ? widget.options.downItemDecoration : null;
+      textStyle = (_isActionDown() && selectIndex == index) ? widget.options.downTextStyle : widget.options.textStyle;
     } else if (widget.options.selectItemDecoration != null) {
-      decoration =
-          (selectIndex == index) ? widget.options.selectItemDecoration : null;
-      textStyle = (selectIndex == index)
-          ? widget.options.selectTextStyle
-          : widget.options.textStyle;
+      decoration = (selectIndex == index) ? widget.options.selectItemDecoration : null;
+      textStyle = (selectIndex == index) ? widget.options.selectTextStyle : widget.options.textStyle;
     } else {
-      textStyle = _isActionDown()
-          ? (widget.options.downTextStyle ?? widget.options.textStyle)
-          : widget.options.textStyle;
+      textStyle =
+          _isActionDown() ? (widget.options.downTextStyle ?? widget.options.textStyle) : widget.options.textStyle;
     }
 
     Widget child;
@@ -454,9 +435,7 @@ class _IndexBarState extends State<IndexBar> {
   Widget build(BuildContext context) {
     return Container(
       color: _isActionDown() ? widget.options.downColor : widget.options.color,
-      decoration: _isActionDown()
-          ? widget.options.downDecoration
-          : widget.options.decoration,
+      decoration: _isActionDown() ? widget.options.downDecoration : widget.options.decoration,
       width: widget.width,
       height: widget.height,
       margin: widget.margin,
@@ -481,7 +460,7 @@ class BaseIndexBar extends StatefulWidget {
     this.data = kIndexBarData,
     this.width = kIndexBarWidth,
     this.itemHeight = kIndexBarItemHeight,
-    this.hapticFeedback = false,
+    this.hapticFeedback,
     this.textStyle = const TextStyle(fontSize: 12.0, color: Color(0xFF666666)),
     this.itemBuilder,
     this.indexBarDragNotifier,
@@ -497,7 +476,7 @@ class BaseIndexBar extends StatefulWidget {
   final double itemHeight;
 
   /// Haptic feedback.
-  final bool hapticFeedback;
+  final HapticFeedbackType? hapticFeedback;
 
   /// IndexBar text style.
   final TextStyle textStyle;
@@ -522,12 +501,11 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
 
   /// trigger drag event.
   _triggerDragEvent(int action) {
-    if (widget.hapticFeedback &&
-        (action == IndexBarDragDetails.actionDown ||
-            action == IndexBarDragDetails.actionUpdate)) {
-      HapticFeedback.vibrate();
+    if (widget.hapticFeedback != null &&
+        (action == IndexBarDragDetails.actionDown || action == IndexBarDragDetails.actionUpdate)) {
+      _vibrate(widget.hapticFeedback!);
     }
-    widget.indexBarDragNotifier?.dragDetails?.value = IndexBarDragDetails(
+    widget.indexBarDragNotifier?.dragDetails.value = IndexBarDragDetails(
       action: action,
       index: lastIndex,
       tag: widget.data[lastIndex],
@@ -536,21 +514,33 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
     );
   }
 
-  RenderBox? _getRenderBox(BuildContext context) {
-    RenderObject? renderObject = context.findRenderObject();
-    RenderBox? box;
-    if (renderObject != null) {
-      box = renderObject as RenderBox;
+  void _vibrate(HapticFeedbackType type) {
+    switch (type) {
+      case HapticFeedbackType.lowImpact:
+        HapticFeedback.lightImpact();
+        break;
+      case HapticFeedbackType.mediumImpact:
+        HapticFeedback.mediumImpact();
+        break;
+      case HapticFeedbackType.heavyImpact:
+        HapticFeedback.heavyImpact();
+        break;
+      case HapticFeedbackType.vibrate:
+        HapticFeedback.vibrate();
+        break;
+      case HapticFeedbackType.selectionClick:
+        HapticFeedback.selectionClick();
+        break;
+      default:
+        break;
     }
-    return box;
   }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> children = List.generate(widget.data.length, (index) {
       Widget child = widget.itemBuilder == null
-          ? Center(
-              child: Text('${widget.data[index]}', style: widget.textStyle))
+          ? Center(child: Text('${widget.data[index]}', style: widget.textStyle))
           : widget.itemBuilder!(context, index);
       return SizedBox(
         width: widget.width,
@@ -575,8 +565,6 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
         int index = _getIndex(details.localPosition.dy);
         if (index >= 0 && lastIndex != index) {
           lastIndex = index;
-          //HapticFeedback.lightImpact();
-          //HapticFeedback.vibrate();
           _triggerDragEvent(IndexBarDragDetails.actionUpdate);
         }
       },
@@ -586,9 +574,6 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
       onVerticalDragCancel: () {
         _triggerDragEvent(IndexBarDragDetails.actionCancel);
       },
-      onTapUp: (TapUpDetails details) {
-        //_triggerDragEvent(IndexBarDragDetails.actionUp);
-      },
       behavior: HitTestBehavior.translucent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -596,4 +581,21 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
       ),
     );
   }
+
+  RenderBox? _getRenderBox(BuildContext context) {
+    RenderObject? renderObject = context.findRenderObject();
+    RenderBox? box;
+    if (renderObject != null) {
+      box = renderObject as RenderBox;
+    }
+    return box;
+  }
+}
+
+enum HapticFeedbackType {
+  selectionClick,
+  lowImpact,
+  mediumImpact,
+  heavyImpact,
+  vibrate,
 }
