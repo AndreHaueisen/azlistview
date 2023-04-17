@@ -1,6 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'dart:math' as math;
+
 import 'az_common.dart';
 
 const double kSusItemHeight = 40;
@@ -71,15 +73,8 @@ class _SuspensionViewState extends State<SuspensionView> {
   @override
   void initState() {
     super.initState();
-    itemScrollController =
-        widget.itemScrollController ?? ItemScrollController();
-    itemPositionsListener =
-        widget.itemPositionsListener ?? ItemPositionsListener.create();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    itemScrollController = widget.itemScrollController ?? ItemScrollController();
+    itemPositionsListener = widget.itemPositionsListener ?? ItemPositionsListener.create();
   }
 
   /// build sus widget.
@@ -93,12 +88,9 @@ class _SuspensionViewState extends State<SuspensionView> {
         if (positions.isEmpty || widget.itemCount == 0) {
           return Container();
         }
-        ItemPosition itemPosition = positions
-            .where((ItemPosition position) => position.itemTrailingEdge > 0)
-            .reduce((ItemPosition min, ItemPosition position) =>
-                position.itemTrailingEdge < min.itemTrailingEdge
-                    ? position
-                    : min);
+        final itemPosition = positions.where((ItemPosition position) => position.itemTrailingEdge > 0).reduce(
+            (ItemPosition min, ItemPosition position) =>
+                position.itemTrailingEdge < min.itemTrailingEdge ? position : min);
         if (itemPosition.itemLeadingEdge > 0) return Container();
         int index = itemPosition.index;
         double left = 0;
@@ -108,14 +100,12 @@ class _SuspensionViewState extends State<SuspensionView> {
             left = widget.susPosition!.dx;
             top = widget.susPosition!.dy;
           } else {
-            int next = math.min(index + 1, widget.itemCount - 1);
-            ISuspensionBean bean = widget.data[next];
+            final next = math.min(index + 1, widget.itemCount - 1);
+            final bean = widget.data[next];
             if (bean.isShowSuspension) {
-              double height =
-                  context.findRenderObject()?.paintBounds?.height ?? 0;
-              double topTemp = itemPosition.itemTrailingEdge * height;
-              top = math.min(widget.susItemHeight, topTemp) -
-                  widget.susItemHeight;
+              final height = context.findRenderObject()?.paintBounds.height ?? 0;
+              final topTemp = itemPosition.itemTrailingEdge * height;
+              top = math.min(widget.susItemHeight, topTemp) - widget.susItemHeight;
             }
           }
         } else {

@@ -493,13 +493,66 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
   int lastIndex = -1;
   int _widgetTop = 0;
 
-  /// get index.
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = List.generate(widget.data.length, (index) {
+      Widget child = widget.itemBuilder == null
+          ? Center(child: Text('${widget.data[index]}', style: widget.textStyle))
+          : widget.itemBuilder!(context, index);
+      return SizedBox(
+        width: widget.width,
+        height: widget.itemHeight,
+        child: child,
+      );
+    });
+
+    return GestureDetector(
+      onVerticalDragDown: (DragDownDetails details) {
+        RenderBox? box = _getRenderBox(context);
+        if (box == null) return;
+        final topLeftPosition = box.localToGlobal(Offset.zero);
+        _widgetTop = topLeftPosition.dy.toInt();
+        final index = _getIndex(details.localPosition.dy);
+        if (index >= 0) {
+          lastIndex = index;
+          _triggerDragEvent(IndexBarDragDetails.actionDown);
+        }
+      },
+      onVerticalDragUpdate: (DragUpdateDetails details) {
+        final index = _getIndex(details.localPosition.dy);
+        if (index >= 0 && lastIndex != index) {
+          lastIndex = index;
+          _triggerDragEvent(IndexBarDragDetails.actionUpdate);
+        }
+      },
+      onVerticalDragEnd: (DragEndDetails details) {
+        _triggerDragEvent(IndexBarDragDetails.actionEnd);
+      },
+      onVerticalDragCancel: () {
+        _triggerDragEvent(IndexBarDragDetails.actionCancel);
+      },
+      behavior: HitTestBehavior.translucent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+
+  RenderBox? _getRenderBox(BuildContext context) {
+    RenderObject? renderObject = context.findRenderObject();
+    RenderBox? box;
+    if (renderObject != null) {
+      box = renderObject as RenderBox;
+    }
+    return box;
+  }
+
   int _getIndex(double offset) {
-    int index = offset ~/ widget.itemHeight;
+    final index = offset ~/ widget.itemHeight;
     return math.min(index, widget.data.length - 1);
   }
 
-  /// trigger drag event.
   _triggerDragEvent(int action) {
     if (widget.hapticFeedback != null &&
         (action == IndexBarDragDetails.actionDown || action == IndexBarDragDetails.actionUpdate)) {
@@ -534,61 +587,6 @@ class _BaseIndexBarState extends State<BaseIndexBar> {
       default:
         break;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> children = List.generate(widget.data.length, (index) {
-      Widget child = widget.itemBuilder == null
-          ? Center(child: Text('${widget.data[index]}', style: widget.textStyle))
-          : widget.itemBuilder!(context, index);
-      return SizedBox(
-        width: widget.width,
-        height: widget.itemHeight,
-        child: child,
-      );
-    });
-
-    return GestureDetector(
-      onVerticalDragDown: (DragDownDetails details) {
-        RenderBox? box = _getRenderBox(context);
-        if (box == null) return;
-        Offset topLeftPosition = box.localToGlobal(Offset.zero);
-        _widgetTop = topLeftPosition.dy.toInt();
-        int index = _getIndex(details.localPosition.dy);
-        if (index >= 0) {
-          lastIndex = index;
-          _triggerDragEvent(IndexBarDragDetails.actionDown);
-        }
-      },
-      onVerticalDragUpdate: (DragUpdateDetails details) {
-        int index = _getIndex(details.localPosition.dy);
-        if (index >= 0 && lastIndex != index) {
-          lastIndex = index;
-          _triggerDragEvent(IndexBarDragDetails.actionUpdate);
-        }
-      },
-      onVerticalDragEnd: (DragEndDetails details) {
-        _triggerDragEvent(IndexBarDragDetails.actionEnd);
-      },
-      onVerticalDragCancel: () {
-        _triggerDragEvent(IndexBarDragDetails.actionCancel);
-      },
-      behavior: HitTestBehavior.translucent,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children,
-      ),
-    );
-  }
-
-  RenderBox? _getRenderBox(BuildContext context) {
-    RenderObject? renderObject = context.findRenderObject();
-    RenderBox? box;
-    if (renderObject != null) {
-      box = renderObject as RenderBox;
-    }
-    return box;
   }
 }
 
